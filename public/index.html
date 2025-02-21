@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #messages { list-style-type: none; padding: 0; }
+    #messages li { padding: 8px; margin-bottom: 10px; background-color: #f4f4f4; border-radius: 4px; }
+    #form { display: flex; }
+    #input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    #send { padding: 10px; border: none; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <ul id="messages"></ul>
+  <form id="nameForm" action="">
+    <input id="nameInput" placeholder="Enter your name" autocomplete="off" /><button id="setName">Set Name</button>
+  </form>
+  <form id="form" action="" style="display:none;">
+    <input id="input" autocomplete="off" /><button id="send">Send</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+    var nameForm = document.getElementById('nameForm');
+    var nameInput = document.getElementById('nameInput');
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+    var messages = document.getElementById('messages');
+    var userName;
+
+    nameForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (nameInput.value) {
+        socket.emit('set user name', nameInput.value);
+        nameInput.value = '';
+      }
+    });
+
+    socket.on('user name set', function(name) {
+      userName = name;
+      nameForm.style.display = 'none';
+      form.style.display = 'flex';
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', input.value);
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', function(msg) {
+      var item = document.createElement('li');
+      item.textContent = `${msg.user}: ${msg.text}`;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+  </script>
+</body>
+</html>
